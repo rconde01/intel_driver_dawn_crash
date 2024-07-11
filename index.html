@@ -76,7 +76,7 @@ fn fsMain() -> @location(0) vec4f {
         depthStencil: {
           depthWriteEnabled: true,
           depthCompare: "less",
-          format: "depth24plus"
+          format: "depth16unorm"
         }
       });
 
@@ -104,7 +104,7 @@ fn fsMain() -> @location(0) vec4f {
       depthTex = device.createTexture({
         label: "depthTex",
         size: { width: 500, height: 500 },
-        format: "depth24plus",
+        format: "depth16unorm",
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
       });
       requestAnimationFrame(frame);
