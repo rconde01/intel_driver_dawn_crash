@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
    framebuffer->GetDesc(
       &depthbufferdesc);   // copy framebuffer properties; they're mostly the same
 
-   depthbufferdesc.Format    = DXGI_FORMAT_D24_UNORM_S8_UINT;
+   depthbufferdesc.Format    = DXGI_FORMAT_D16_UNORM;
    depthbufferdesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
    ID3D11Texture2D* depthbuffer;
