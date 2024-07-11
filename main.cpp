@@ -86,9 +86,8 @@ int main(int argc, char** argv) {
    DXGI_SWAP_CHAIN_DESC swapchaindesc = {};
    swapchaindesc.BufferDesc.Width     = 0;   // use window width
    swapchaindesc.BufferDesc.Height    = 0;   // use window height
-   swapchaindesc.BufferDesc.Format =
-      DXGI_FORMAT_B8G8R8A8_UNORM;   // can't specify SRGB framebuffer directly when using
-                                    // FLIP model swap effect. see lines 49, 66
+   swapchaindesc.BufferDesc.Format    = DXGI_FORMAT_B8G8R8A8_UNORM;
+
    swapchaindesc.SampleDesc.Count = 1;
    swapchaindesc.BufferUsage      = DXGI_USAGE_RENDER_TARGET_OUTPUT;
    swapchaindesc.BufferCount      = 2;
@@ -127,10 +126,9 @@ int main(int argc, char** argv) {
       __uuidof(ID3D11Texture2D),
       (void**)&framebuffer);   // grab framebuffer from swapchain
 
-   D3D11_RENDER_TARGET_VIEW_DESC framebufferRTVdesc =
-      {};   // needed for SRGB framebuffer when using FLIP model swap effect
-   framebufferRTVdesc.Format        = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-   framebufferRTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+   D3D11_RENDER_TARGET_VIEW_DESC framebufferRTVdesc = {};
+   framebufferRTVdesc.Format                        = DXGI_FORMAT_B8G8R8A8_UNORM;
+   framebufferRTVdesc.ViewDimension                 = D3D11_RTV_DIMENSION_TEXTURE2D;
 
    ID3D11RenderTargetView* framebufferRTV;
 
