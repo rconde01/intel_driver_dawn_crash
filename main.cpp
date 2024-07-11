@@ -28,22 +28,10 @@ int const   DRAW_COUNT = 10000;
 #define CHECK(X) assert(SUCCEEDED(X))
 
 std::string const SHADER_SRC = R"(
-StructuredBuffer<float3> vertices : register(t0);
-
 float4 VSMain(uint vertex_index : SV_VertexID) : SV_POSITION {
-   float2 vert;
+   const float2 verts[3] = {float2(0.0f, 0.5f), (-0.5f).xx, float2(0.5f, -0.5f)};
 
-   if(vertex_index == 0){
-      vert = float2(0.0, 0.5);
-   }
-   else if(vertex_index == 1){
-      vert = float2(-0.5, -0.5); 
-   }
-   else if(vertex_index == 2){
-      vert = float2(0.5, -0.5);
-   }
-
-   return float4(vert, 0.0, 1.0);
+   return float4(verts[vertex_index], 0.0, 1.0);
 }
 
 float4 PSMain() : SV_TARGET {
@@ -219,41 +207,6 @@ int main(int argc, char** argv) {
       nullptr,
       &ps);
 
-   // clang-format off
-   float vertices[] = {
-      0.0f, 1.0f, 0.0f,
-      -1.0f, -1.0f, 0.0f,
-      1.0f, -1.0f, 0.0f,
-   };
-   // clang-format on
-
-   D3D11_BUFFER_DESC vb_desc = {
-      .ByteWidth           = sizeof(vertices),
-      .Usage               = D3D11_USAGE_DEFAULT,
-      .BindFlags           = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS,
-      .CPUAccessFlags      = 0,
-      .MiscFlags           = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED,
-      .StructureByteStride = sizeof(float) * 3,
-   };
-
-   D3D11_SUBRESOURCE_DATA data = {
-      .pSysMem          = vertices,
-      .SysMemPitch      = 0,
-      .SysMemSlicePitch = 0,
-   };
-
-   ID3D11Buffer* vb;
-   device->CreateBuffer(&vb_desc, &data, &vb);
-
-   ID3D11ShaderResourceView*       srv;
-   D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-   srv_desc.ViewDimension                   = D3D11_SRV_DIMENSION_BUFFEREX;
-   srv_desc.BufferEx.FirstElement           = 0;
-   srv_desc.Format                          = DXGI_FORMAT_UNKNOWN;
-   srv_desc.BufferEx.NumElements = vb_desc.ByteWidth / vb_desc.StructureByteStride;
-
-   device->CreateShaderResourceView(vb, &srv_desc, &srv);
-
    D3D11_VIEWPORT viewport = {
       .TopLeftX = 0.0f,
       .TopLeftY = 0.0f,
@@ -313,7 +266,6 @@ int main(int argc, char** argv) {
    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
    context->VSSetShader(vs, nullptr, 0);
-   context->VSSetShaderResources(0, 1, &srv);
 
    context->RSSetViewports(1, &viewport);
    context->RSSetState(rasterizer_state);
