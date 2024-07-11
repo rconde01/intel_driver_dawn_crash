@@ -13,7 +13,7 @@
     let indirectBuf;
 
     const INDIRECT_SIZE = 4 * 4;
-    const INDIRECT_DRAW_COUNT = 500;
+    const INDIRECT_DRAW_COUNT = 1000;
 
     async function init() {
       const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
@@ -32,13 +32,19 @@
 
 @vertex
 fn vsMain(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec4f {
-  let verts = array<vec2f, 3>(
-    vec2f(0.0, 0.5),
-    vec2f(-0.5, -0.5),
-    vec2f(0.5, -0.5)
-  );
+  var vert: vec2f;
 
-  return vec4f(verts[vertexIndex], 0.0, 1.0);
+  if(vertexIndex == 0){
+    vert = vec2f(0.0, 0.5);
+  }
+  else if(vertexIndex == 1){
+    vert = vec2f(-0.5, -0.5); 
+  }
+  else if(vertexIndex == 2){
+    vert = vec2f(0.5, -0.5);
+  }
+
+  return vec4f(vert, 0.0, 1.0);
 }
 
 @fragment 
