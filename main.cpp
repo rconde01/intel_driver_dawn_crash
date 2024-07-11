@@ -31,7 +31,19 @@ std::string const SHADER_SRC = R"(
 StructuredBuffer<float3> vertices : register(t0);
 
 float4 VSMain(uint vertex_index : SV_VertexID) : SV_POSITION {
-   return float4(vertices[vertex_index], 1.0);
+   float2 vert;
+
+   if(vertex_index == 0){
+      vert = float2(0.0, 0.5);
+   }
+   else if(vertex_index == 1){
+      vert = float2(-0.5, -0.5); 
+   }
+   else if(vertex_index == 2){
+      vert = float2(0.5, -0.5);
+   }
+
+   return float4(vert, 0.0, 1.0);
 }
 
 float4 PSMain() : SV_TARGET {
