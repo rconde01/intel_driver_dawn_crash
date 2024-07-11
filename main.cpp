@@ -284,7 +284,8 @@ int main(int argc, char** argv) {
          DispatchMessage(&msg);
       }
       else {
-         FLOAT clear_color[4] = {(sinf(i / float(120)) + 1.0f)/2.0f, 0.025f, 0.025f, 1.0f};
+         FLOAT clear_color[4] = {
+            (sinf(i / float(120)) + 1.0f) / 2.0f, 0.025f, 0.025f, 1.0f};
 
          context->OMSetRenderTargets(1, &framebufferRTV, depthbufferDSV);
          context->ClearRenderTargetView(framebufferRTV, clear_color);
