@@ -1,0 +1,144 @@
+<html>
+
+<body>
+  <canvas id="scene" width="500" height="500"></canvas>
+  <script>
+
+    let device;
+    let webGpuContext;
+
+    let depthTex;
+
+    let pipeline;
+    let indirectBuf;
+
+    const INDIRECT_SIZE = 4 * 4;
+    const INDIRECT_DRAW_COUNT = 500;
+
+    async function init() {
+      const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+      const adapter = await navigator.gpu.requestAdapter();
+      //device = await adapter.requestDevice({ requiredFeatures: ["indirect-first-instance"] });
+      device = await adapter.requestDevice({ requiredFeatures: [] });
+
+      if (!device) {
+        throw new Error("Failed to request device");
+      }
+      const canvas = document.getElementById("scene");
+      webGpuContext = canvas.getContext("webgpu");
+      webGpuContext.configure({ device, format: presentationFormat });
+
+      let shader = `
+
+@vertex
+fn vsMain(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec4f {
+  let verts = array<vec2f, 3>(
+    vec2f(0.0, 0.5),
+    vec2f(-0.5, -0.5),
+    vec2f(0.5, -0.5)
+  );
+
+  return vec4f(verts[vertexIndex], 0.0, 1.0);
+}
+
+@fragment 
+fn fsMain() -> @location(0) vec4f {
+  return vec4(1.0,0.0,0.0,1.0);
+}`;
+
+      const shaderModule = device.createShaderModule({ code: shader });
+      pipeline = device.createRenderPipeline({
+        label: "pipeline",
+        layout: "auto",
+        vertex: {
+          module: shaderModule,
+          entryPoint: "vsMain",
+        },
+        fragment: {
+          module: shaderModule,
+          entryPoint: "fsMain",
+          targets: [
+            {
+              format: presentationFormat,
+            }
+          ]
+        },
+        primitive: {
+          topology: "triangle-list",
+          cullMode: "back",
+        },
+        depthStencil: {
+          depthWriteEnabled: true,
+          depthCompare: "less",
+          format: "depth24plus"
+        }
+      });
+
+      indirectBuffers = []
+
+      for(let i = 0; i < INDIRECT_DRAW_COUNT; i++){
+        indirectBuffers.push(
+          device.createBuffer({
+            label: "indirectBuf" + i.toString(),
+            usage: GPUBufferUsage.INDIRECT,
+            size: INDIRECT_SIZE * INDIRECT_DRAW_COUNT,
+            mappedAtCreation: true,
+          }));
+
+        let command = new Int32Array(indirectBuffers[i].getMappedRange());
+
+        command[i] = 3;
+        command[i + 1] = 1;
+        command[i + 2] = 0;
+        command[i + 3] = 0;
+
+        indirectBuffers[i].unmap();
+      }
+
+      depthTex = device.createTexture({
+        label: "depthTex",
+        size: { width: 500, height: 500 },
+        format: "depth24plus",
+        usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      });
+      requestAnimationFrame(frame);
+    }
+    function frame() {
+
+      let passDesc = {
+        colorAttachments: [
+          {
+            view: webGpuContext.getCurrentTexture().createView(),
+            clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+            loadOp: "clear",
+            storeOp: "store",
+          },
+        ],
+        depthStencilAttachment: {
+          view: depthTex.createView(),
+          depthClearValue: 1.0,
+          depthLoadOp: "clear",
+          depthStoreOp: "store",
+        },
+      }
+
+      let commandEncoder = device.createCommandEncoder();
+      let renderPass = commandEncoder.beginRenderPass(passDesc);
+      renderPass.setPipeline(pipeline);
+
+      for (let i = 0; i < INDIRECT_DRAW_COUNT; i++) {
+        renderPass.drawIndirect(indirectBuffers[i],0);//, INDIRECT_SIZE * i);
+      }
+
+      renderPass.end();
+      device.queue.submit([commandEncoder.finish()]);
+
+      requestAnimationFrame(frame);
+    }
+
+    init();
+
+  </script>
+</body>
+
+</html>
